@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     llm_timeout: int = 120
 
     mineru_command: str = "mineru"
-    mineru_backend: str = "pipeline"
+    mineru_backend: str = "hybrid-auto-engine"
     mineru_timeout: int = 600
 
     cors_origins: str = Field(default="http://localhost:5173")

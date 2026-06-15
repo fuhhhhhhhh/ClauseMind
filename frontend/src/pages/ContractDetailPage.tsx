@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getContract } from '../api/contracts';
 import { startParse } from '../api/parse';
+import { startProfileReview } from '../api/reviews';
 import ContractStatusTag from '../components/ContractStatusTag';
 import PageHeader from '../components/PageHeader';
 import type { ContractDetail } from '../types';
@@ -13,6 +14,7 @@ export default function ContractDetailPage() {
   const [contract, setContract] = useState<ContractDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [parsing, setParsing] = useState(false);
+  const [reviewing, setReviewing] = useState(false);
 
   const fetchContract = useCallback(async () => {
     if (!id) return;
@@ -37,12 +39,27 @@ export default function ContractDetailPage() {
     try {
       await startParse(contract.id);
       message.success('解析任务已启动');
-      fetchContract(); // refresh to show updated status
+      fetchContract();
     } catch (err: any) {
       const detail = err?.response?.data?.detail || '启动解析失败';
       message.error(detail);
     } finally {
       setParsing(false);
+    }
+  };
+
+  const handleStartReview = async () => {
+    if (!contract) return;
+    setReviewing(true);
+    try {
+      const res = await startProfileReview(contract.id);
+      message.success('画像审查完成');
+      navigate(`/review-tasks/${res.data.data.task.id}/progress`);
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail || '启动审查失败（请确保合同已解析并标准化）';
+      message.error(detail);
+    } finally {
+      setReviewing(false);
     }
   };
 
@@ -86,7 +103,12 @@ export default function ContractDetailPage() {
           >
             {contract.status === 'PARSED' ? '已解析' : '开始解析'}
           </Button>
-          <Button>开始审查</Button>
+          <Button
+            loading={reviewing}
+            onClick={handleStartReview}
+          >
+            开始审查
+          </Button>
           <Link to={`/contracts/${contract.id}/parse-result`}>解析结果</Link>
         </Space>
       </div>

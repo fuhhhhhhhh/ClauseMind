@@ -101,3 +101,31 @@ export type NormalizedDocument = {
   tables: NormalizedTable[];
   metadata: { parse_engine: string; content_json_available: boolean };
 };
+
+// ── Review / Agent Types ────────────────────────────────────────────────────
+
+export type ReviewTask = {
+  id: number;
+  contract_id: number;
+  user_id: number;
+  status: string;
+  current_step: string | null;
+  error_message: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+};
+
+export type AgentExecutionLog = {
+  id: number;
+  task_id: number;
+  contract_id: number;
+  agent_name: string;
+  input_json: string | null;
+  output_json: string | null;
+  status: string;
+  error_message: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  duration_ms: number | null;
+};

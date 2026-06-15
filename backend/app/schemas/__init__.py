@@ -24,8 +24,14 @@ from app.schemas.parse import (
     ParseJobResponse,
     ParseStatusResponse,
 )
+from app.schemas.review import (
+    AgentExecutionLogResponse,
+    ReviewTaskDetailResponse,
+    ReviewTaskResponse,
+)
 
 __all__ = [
+    "AgentExecutionLogResponse",
     "TokenResponse",
     "UserLoginRequest",
     "UserRegisterRequest",
@@ -42,4 +48,6 @@ __all__ = [
     "NormalizedTable",
     "ParseJobResponse",
     "ParseStatusResponse",
+    "ReviewTaskDetailResponse",
+    "ReviewTaskResponse",
 ]
