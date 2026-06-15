@@ -1,7 +1,8 @@
 import { Button, Space, Table, message } from 'antd';
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { deleteContract, listContracts } from '../api/contracts';
+import { startParse } from '../api/parse';
 import ContractStatusTag from '../components/ContractStatusTag';
 import PageHeader from '../components/PageHeader';
 import type { ContractListItem } from '../types';
@@ -9,7 +10,6 @@ import type { ContractListItem } from '../types';
 export default function ContractListPage() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ContractListItem[]>([]);
-  const navigate = useNavigate();
 
   const fetchList = async () => {
     setLoading(true);
@@ -37,6 +37,19 @@ export default function ContractListPage() {
       message.error(detail);
     }
   };
+
+  const handleStartParse = async (id: number) => {
+    try {
+      await startParse(id);
+      message.success('解析任务已启动');
+      fetchList();
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail || '启动解析失败';
+      message.error(detail);
+    }
+  };
+
+  const canParse = (status: string) => status === 'UPLOADED' || status === 'FAILED';
 
   const formatSize = (bytes: number | null) => {
     if (bytes == null) return '-';
@@ -68,6 +81,11 @@ export default function ContractListPage() {
               render: (_, record) => (
                 <Space>
                   <Link to={`/contracts/${record.id}`}>详情</Link>
+                  {canParse(record.status) && (
+                    <Button size="small" type="link" onClick={() => handleStartParse(record.id)}>
+                      开始解析
+                    </Button>
+                  )}
                   <Button size="small" type="link" danger onClick={() => handleDelete(record.id)}>
                     删除
                   </Button>

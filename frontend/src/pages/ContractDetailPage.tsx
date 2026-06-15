@@ -1,26 +1,50 @@
 import { Button, Descriptions, Space, Spin, message } from 'antd';
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getContract } from '../api/contracts';
+import { startParse } from '../api/parse';
 import ContractStatusTag from '../components/ContractStatusTag';
 import PageHeader from '../components/PageHeader';
 import type { ContractDetail } from '../types';
 
 export default function ContractDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [contract, setContract] = useState<ContractDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [parsing, setParsing] = useState(false);
+
+  const fetchContract = useCallback(async () => {
+    if (!id) return;
+    try {
+      const res = await getContract(id);
+      setContract(res.data.data);
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail || '获取合同详情失败';
+      message.error(detail);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
   useEffect(() => {
-    if (!id) return;
-    getContract(id)
-      .then((res) => setContract(res.data.data))
-      .catch((err) => {
-        const detail = err?.response?.data?.detail || '获取合同详情失败';
-        message.error(detail);
-      })
-      .finally(() => setLoading(false));
-  }, [id]);
+    fetchContract();
+  }, [fetchContract]);
+
+  const handleStartParse = async () => {
+    if (!contract) return;
+    setParsing(true);
+    try {
+      await startParse(contract.id);
+      message.success('解析任务已启动');
+      fetchContract(); // refresh to show updated status
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail || '启动解析失败';
+      message.error(detail);
+    } finally {
+      setParsing(false);
+    }
+  };
 
   if (loading) {
     return <Spin style={{ display: 'block', margin: '40px auto' }} />;
@@ -54,7 +78,14 @@ export default function ContractDetailPage() {
           <Descriptions.Item label="更新时间">{contract.updated_at}</Descriptions.Item>
         </Descriptions>
         <Space style={{ marginTop: 16 }}>
-          <Button type="primary">开始解析</Button>
+          <Button
+            type="primary"
+            loading={parsing}
+            disabled={contract.status === 'PARSING' || contract.status === 'PARSED'}
+            onClick={handleStartParse}
+          >
+            {contract.status === 'PARSED' ? '已解析' : '开始解析'}
+          </Button>
           <Button>开始审查</Button>
           <Link to={`/contracts/${contract.id}/parse-result`}>解析结果</Link>
         </Space>

@@ -12,6 +12,11 @@ from app.schemas.contract import (
     ContractListResponse,
     ContractResponse,
 )
+from app.schemas.parse import (
+    DocumentParseResultResponse,
+    ParseJobResponse,
+    ParseStatusResponse,
+)
 
 __all__ = [
     "TokenResponse",
@@ -22,4 +27,7 @@ __all__ = [
     "ContractListItem",
     "ContractListResponse",
     "ContractResponse",
+    "DocumentParseResultResponse",
+    "ParseJobResponse",
+    "ParseStatusResponse",
 ]
