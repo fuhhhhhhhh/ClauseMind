@@ -38,4 +38,10 @@ def get_current_active_user(current_user: User = Depends(get_current_user)) -> U
     return current_user
 
 
-__all__ = ["get_db", "get_current_user", "get_current_active_user"]
+def get_current_admin_user(current_user: User = Depends(get_current_active_user)) -> User:
+    if current_user.role != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="需要管理员权限")
+    return current_user
+
+
+__all__ = ["get_db", "get_current_user", "get_current_active_user", "get_current_admin_user"]

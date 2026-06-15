@@ -244,17 +244,20 @@ class TestLatestReview:
         token, cid = _register_and_upload(client, "lat_multi")
         _parse_and_normalize(client, token, cid)
 
+        task_ids = []
         with patch("app.agents.contract_profile_agent.ContractProfileAgent.run", new_callable=AsyncMock) as mock:
             mock.return_value = PROFILE_OUTPUT
             # Create 2 review tasks
-            client.post(
+            r1 = client.post(
                 f"/api/v1/contracts/{cid}/review/profile",
                 headers={"Authorization": f"Bearer {token}"},
             )
-            client.post(
+            task_ids.append(r1.json()["data"]["task"]["id"])
+            r2 = client.post(
                 f"/api/v1/contracts/{cid}/review/profile",
                 headers={"Authorization": f"Bearer {token}"},
             )
+            task_ids.append(r2.json()["data"]["task"]["id"])
 
         res = client.get(
             f"/api/v1/contracts/{cid}/review/latest",
@@ -264,3 +267,4 @@ class TestLatestReview:
         task = res.json()["data"]
         assert task is not None
         assert task["contract_id"] == cid
+        assert task["id"] == task_ids[-1]  # most recent = second task

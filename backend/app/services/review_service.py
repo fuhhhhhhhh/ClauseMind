@@ -454,6 +454,6 @@ class ReviewService:
         return (
             self.db.query(ReviewTask)
             .filter(ReviewTask.contract_id == contract_id)
-            .order_by(ReviewTask.created_at.desc())
+            .order_by(ReviewTask.created_at.desc(), ReviewTask.id.desc())
             .first()
         )

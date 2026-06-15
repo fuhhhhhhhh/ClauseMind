@@ -1,6 +1,6 @@
-import { Descriptions, Spin, Typography, message } from 'antd';
+import { Button, Descriptions, Space, Spin, Typography, message } from 'antd';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { getReviewReport } from '../api/reviews';
 import MarkdownViewer from '../components/MarkdownViewer';
 import PageHeader from '../components/PageHeader';
@@ -33,6 +33,26 @@ export default function ReportPage() {
   return (
     <>
       <PageHeader title="审查报告" description={(report.report_title as string) || '-'} />
+      <Space style={{ marginBottom: 16 }}>
+        <Link to={`/review-tasks/${taskId}/risks`}>
+          <Button size="small">风险分析</Button>
+        </Link>
+        <Link to={`/review-tasks/${taskId}/suggestions`}>
+          <Button size="small">修改建议</Button>
+        </Link>
+        <Link to={`/review-tasks/${taskId}/progress`}>
+          <Button size="small">审查进度</Button>
+        </Link>
+        <Button
+          size="small"
+          type="primary"
+          onClick={() => {
+            window.open(`/api/v1/reports/${taskId}/export`, '_blank');
+          }}
+        >
+          导出 Markdown
+        </Button>
+      </Space>
       {markdown ? (
         <MarkdownViewer markdown={markdown} />
       ) : (
