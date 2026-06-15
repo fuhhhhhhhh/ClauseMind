@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import settings
-from app.core.database import initialize_database
 from app.core.exceptions import register_exception_handlers
 from app.core.response import success
 
@@ -22,7 +21,6 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     def startup() -> None:
-        initialize_database()
         settings.ensure_storage_dirs()
 
     @app.get("/health")
