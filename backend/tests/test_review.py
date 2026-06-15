@@ -207,3 +207,60 @@ class TestProfileReviewFlow:
             headers={"Authorization": f"Bearer {token2}"},
         )
         assert res2.status_code == 403
+
+
+# ── Latest review endpoint tests ──────────────────────────────────────────────
+
+
+class TestLatestReview:
+    def test_latest_without_token_returns_401(self, client):
+        res = client.get("/api/v1/contracts/1/review/latest")
+        assert res.status_code == 401
+
+    def test_latest_other_user_returns_403(self, client):
+        token1, cid = _register_and_upload(client, "lat_owner")
+        _register_and_upload(client, "lat_intruder")
+        login_res = client.post(
+            "/api/v1/auth/login",
+            json={"username": "lat_intruder", "password": "pass123456"},
+        )
+        token2 = login_res.json()["data"]["access_token"]
+        res = client.get(
+            f"/api/v1/contracts/{cid}/review/latest",
+            headers={"Authorization": f"Bearer {token2}"},
+        )
+        assert res.status_code == 403
+
+    def test_latest_no_review_returns_null(self, client):
+        token, cid = _register_and_upload(client, "lat_none")
+        res = client.get(
+            f"/api/v1/contracts/{cid}/review/latest",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert res.status_code == 200
+        assert res.json()["data"] is None
+
+    def test_latest_returns_most_recent(self, client):
+        token, cid = _register_and_upload(client, "lat_multi")
+        _parse_and_normalize(client, token, cid)
+
+        with patch("app.agents.contract_profile_agent.ContractProfileAgent.run", new_callable=AsyncMock) as mock:
+            mock.return_value = PROFILE_OUTPUT
+            # Create 2 review tasks
+            client.post(
+                f"/api/v1/contracts/{cid}/review/profile",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+            client.post(
+                f"/api/v1/contracts/{cid}/review/profile",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+
+        res = client.get(
+            f"/api/v1/contracts/{cid}/review/latest",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert res.status_code == 200
+        task = res.json()["data"]
+        assert task is not None
+        assert task["contract_id"] == cid

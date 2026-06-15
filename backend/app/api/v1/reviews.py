@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_active_user, get_db
 from app.core.exceptions import AppError
 from app.core.response import success
+from app.models.review_task import ReviewTask
 from app.models.user import User
 from app.schemas.review import (
     AgentExecutionLogResponse,
@@ -186,3 +187,25 @@ def get_review_report(
     if report is None:
         raise AppError("审查报告不存在或 Agent 未成功执行", code=404, status_code=404)
     return success(report, "获取审查报告成功")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Latest review for a contract
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+@router.get("/contracts/{contract_id}/review/latest")
+def get_latest_review(
+    contract_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """Get the most recent ReviewTask for a contract (own contracts only)."""
+    svc = ReviewService(db)
+    task = svc.get_latest_task(contract_id, current_user.id)
+    if task is None:
+        return success(None, "该合同尚未审查")
+    return success(
+        ReviewTaskResponse.model_validate(task).model_dump(),
+        "获取最近审查任务成功",
+    )

@@ -3,10 +3,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getContract } from '../api/contracts';
 import { startParse } from '../api/parse';
-import { startFullReview } from '../api/reviews';
+import { getLatestReview, startFullReview } from '../api/reviews';
 import ContractStatusTag from '../components/ContractStatusTag';
 import PageHeader from '../components/PageHeader';
-import type { ContractDetail } from '../types';
+import type { ContractDetail, ReviewTask } from '../types';
 
 export default function ContractDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -15,12 +15,18 @@ export default function ContractDetailPage() {
   const [loading, setLoading] = useState(true);
   const [parsing, setParsing] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+  const [latestTask, setLatestTask] = useState<ReviewTask | null>(null);
 
   const fetchContract = useCallback(async () => {
     if (!id) return;
     try {
       const res = await getContract(id);
       setContract(res.data.data);
+      // Also fetch latest review task
+      try {
+        const taskRes = await getLatestReview(id);
+        if (taskRes.data.data) setLatestTask(taskRes.data.data);
+      } catch { /* no review yet */ }
     } catch (err: any) {
       const detail = err?.response?.data?.detail || '获取合同详情失败';
       message.error(detail);
@@ -110,6 +116,14 @@ export default function ContractDetailPage() {
             开始审查
           </Button>
           <Link to={`/contracts/${contract.id}/parse-result`}>解析结果</Link>
+          {latestTask && (
+            <>
+              <Link to={`/review-tasks/${latestTask.id}/progress`}>审查进度</Link>
+              <Link to={`/review-tasks/${latestTask.id}/risks`}>风险分析</Link>
+              <Link to={`/review-tasks/${latestTask.id}/suggestions`}>修改建议</Link>
+              <Link to={`/reports/${latestTask.id}`}>审查报告</Link>
+            </>
+          )}
         </Space>
       </div>
     </>

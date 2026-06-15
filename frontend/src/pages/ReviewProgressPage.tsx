@@ -1,8 +1,9 @@
 import { Button, Collapse, Descriptions, Empty, Space, Spin, Tag, Typography, message } from 'antd';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getReviewTask, getAgentLogs, getProfileResult } from '../api/reviews';
+import { getReviewProgress, getProfileResult } from '../api/reviews';
 import AgentLogDrawer from '../components/AgentLogDrawer';
+import AgentStepBar from '../components/AgentStepBar';
 import PageHeader from '../components/PageHeader';
 import type { AgentExecutionLog, ReviewTask } from '../types';
 
@@ -20,13 +21,12 @@ export default function ReviewProgressPage() {
   useEffect(() => {
     if (!taskId) return;
     Promise.all([
-      getReviewTask(taskId),
-      getAgentLogs(taskId).catch(() => ({ data: { data: [] } })),
+      getReviewProgress(taskId),
       getProfileResult(taskId).catch(() => null),
     ])
-      .then(([taskRes, logsRes, profileRes]) => {
-        setTask(taskRes.data.data);
-        setLogs(logsRes.data.data);
+      .then(([progressRes, profileRes]) => {
+        setTask(progressRes.data.data.task);
+        setLogs(progressRes.data.data.agent_logs || []);
         if (profileRes) setProfile(profileRes.data.data);
       })
       .catch(() => message.error('获取审查数据失败'))
@@ -48,16 +48,7 @@ export default function ReviewProgressPage() {
       <PageHeader title="审查进度" description="查看审查任务状态和 Agent 执行日志。" />
 
       <div className="page-panel" style={{ marginBottom: 16 }}>
-        <Descriptions bordered column={2} size="small">
-          <Descriptions.Item label="任务 ID">{task?.id ?? '-'}</Descriptions.Item>
-          <Descriptions.Item label="状态">
-            <Tag color={statusColor}>{task?.status ?? '-'}</Tag>
-          </Descriptions.Item>
-          <Descriptions.Item label="当前步骤">{task?.current_step || '-'}</Descriptions.Item>
-          <Descriptions.Item label="错误信息" span={2}>
-            {task?.error_message ? <Text type="danger">{task.error_message}</Text> : '-'}
-          </Descriptions.Item>
-        </Descriptions>
+        <AgentStepBar logs={logs} />
       </div>
 
       {profile && (

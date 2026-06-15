@@ -48,3 +48,7 @@ export function getReviewSuggestions(taskId: number | string) {
 export function getReviewReport(taskId: number | string) {
   return request.get<ApiResponse<Record<string, unknown>>>(`/api/v1/reports/${taskId}`);
 }
+
+export function getLatestReview(contractId: number | string) {
+  return request.get<ApiResponse<ReviewTask | null>>(`/api/v1/contracts/${contractId}/review/latest`);
+}

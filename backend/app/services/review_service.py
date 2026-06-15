@@ -447,3 +447,13 @@ class ReviewService:
             "markdown_report": report.markdown_report,
             "disclaimer": report.disclaimer,
         }
+
+    def get_latest_task(self, contract_id: int, user_id: int) -> ReviewTask | None:
+        """Get the most recent ReviewTask for a contract (must own the contract)."""
+        self._get_contract(contract_id, user_id)  # validates ownership
+        return (
+            self.db.query(ReviewTask)
+            .filter(ReviewTask.contract_id == contract_id)
+            .order_by(ReviewTask.created_at.desc())
+            .first()
+        )
