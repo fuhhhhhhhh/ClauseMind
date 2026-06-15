@@ -16,6 +16,8 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, futu
 
 
 def initialize_database() -> None:
+    # Import all models so they register with Base.metadata
+    import app.models  # noqa: F401
     Base.metadata.create_all(bind=engine)
 
 

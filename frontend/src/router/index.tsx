@@ -12,13 +12,21 @@ import ReportPage from '../pages/ReportPage';
 import ReviewProgressPage from '../pages/ReviewProgressPage';
 import RiskAnalysisPage from '../pages/RiskAnalysisPage';
 import SuggestionPage from '../pages/SuggestionPage';
+import { RequireAuth } from './RequireAuth';
 
 export function AppRouter() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/" element={<MainLayout />}>
+      <Route
+        path="/"
+        element={
+          <RequireAuth>
+            <MainLayout />
+          </RequireAuth>
+        }
+      >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="contracts" element={<ContractListPage />} />

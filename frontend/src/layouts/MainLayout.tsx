@@ -4,11 +4,14 @@ import {
   FileAddOutlined,
   FileTextOutlined,
   HomeOutlined,
+  LogoutOutlined,
   SafetyCertificateOutlined,
   SettingOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
-import { Layout, Menu, Typography } from 'antd';
+import { Button, Layout, Menu, Space, Typography } from 'antd';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 
 const { Header, Sider, Content } = Layout;
 
@@ -25,7 +28,14 @@ const menuItems = [
 export default function MainLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
   const selected = menuItems.find((item) => location.pathname.startsWith(item.key))?.key ?? '/dashboard';
+
+  const handleLogout = () => {
+    clearAuth();
+    navigate('/login');
+  };
 
   return (
     <Layout className="app-shell">
@@ -45,7 +55,15 @@ export default function MainLayout() {
           }}
         >
           <Typography.Text strong>合同智能审查系统</Typography.Text>
-          <Typography.Text type="secondary">OpenAI-compatible LLM + MinerU</Typography.Text>
+          <Space>
+            <Space>
+              <UserOutlined />
+              <Typography.Text>{user?.username ?? '用户'}</Typography.Text>
+            </Space>
+            <Button type="text" icon={<LogoutOutlined />} onClick={handleLogout}>
+              退出
+            </Button>
+          </Space>
         </Header>
         <Content className="app-content">
           <Outlet />

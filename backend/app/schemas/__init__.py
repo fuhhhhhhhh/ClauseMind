@@ -1,1 +1,15 @@
-"""Pydantic schemas will be added in later MVP phases."""
+"""Pydantic schemas."""
+
+from app.schemas.auth import (
+    TokenResponse,
+    UserLoginRequest,
+    UserRegisterRequest,
+    UserResponse,
+)
+
+__all__ = [
+    "TokenResponse",
+    "UserLoginRequest",
+    "UserRegisterRequest",
+    "UserResponse",
+]

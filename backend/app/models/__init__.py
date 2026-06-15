@@ -1,1 +1,5 @@
-"""SQLAlchemy models will be added in later MVP phases."""
+"""SQLAlchemy models."""
+
+from app.models.user import User
+
+__all__ = ["User"]
