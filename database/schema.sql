@@ -1,0 +1,3 @@
+-- ClauseMind database schema placeholder.
+-- The first runnable skeleton initializes SQLAlchemy without business tables.
+-- Add concrete tables through Alembic migrations in Phase 2 onward.

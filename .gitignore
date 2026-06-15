@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+*.egg-info/
+
+# Backend runtime
+backend/.env
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
+backend/contract_review.db
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
+frontend/.env.local
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+
+# Storage artifacts
+storage/uploads/*
+storage/mineru_output/*
+storage/reports/*
+storage/temp/*
+!storage/uploads/.gitkeep
+!storage/mineru_output/.gitkeep
+!storage/reports/.gitkeep
+!storage/temp/.gitkeep
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

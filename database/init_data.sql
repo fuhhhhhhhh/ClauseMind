@@ -1,0 +1,2 @@
+-- ClauseMind initial data placeholder.
+-- Add demo users or seed data only after auth models are implemented.

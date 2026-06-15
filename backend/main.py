@@ -1,0 +1,42 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.v1.router import api_router
+from app.core.config import settings
+from app.core.database import initialize_database
+from app.core.exceptions import register_exception_handlers
+from app.core.response import success
+
+
+def create_app() -> FastAPI:
+    app = FastAPI(title=settings.app_name, version="0.1.0")
+    register_exception_handlers(app)
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins_list,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    @app.on_event("startup")
+    def startup() -> None:
+        initialize_database()
+        settings.ensure_storage_dirs()
+
+    @app.get("/health")
+    def health_check():
+        return success(
+            {
+                "service": settings.app_name,
+                "environment": settings.app_env,
+                "status": "ok",
+            }
+        )
+
+    app.include_router(api_router, prefix="/api/v1")
+    return app
+
+
+app = create_app()
