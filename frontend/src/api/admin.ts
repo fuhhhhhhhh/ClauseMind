@@ -62,22 +62,38 @@ export type AdminStatistics = {
   recent_review_tasks: { id: number; contract_id: number; status: string; created_at: string }[];
 };
 
+export type PaginatedResponse<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  page_size: number;
+};
+
+export type AdminQueryParams = {
+  page?: number;
+  page_size?: number;
+  keyword?: string;
+  status?: string;
+  role?: string;
+  agent_name?: string;
+};
+
 // ── API ──────────────────────────────────────────────────────────────────────
 
-export function getAdminUsers() {
-  return request.get<ApiResponse<AdminUser[]>>('/api/v1/admin/users');
+export function getAdminUsers(params?: AdminQueryParams) {
+  return request.get<ApiResponse<PaginatedResponse<AdminUser>>>('/api/v1/admin/users', { params });
 }
 
-export function getAdminContracts() {
-  return request.get<ApiResponse<AdminContract[]>>('/api/v1/admin/contracts');
+export function getAdminContracts(params?: AdminQueryParams) {
+  return request.get<ApiResponse<PaginatedResponse<AdminContract>>>('/api/v1/admin/contracts', { params });
 }
 
-export function getAdminReviewTasks() {
-  return request.get<ApiResponse<AdminReviewTask[]>>('/api/v1/admin/review-tasks');
+export function getAdminReviewTasks(params?: AdminQueryParams) {
+  return request.get<ApiResponse<PaginatedResponse<AdminReviewTask>>>('/api/v1/admin/review-tasks', { params });
 }
 
-export function getAdminAgentLogs() {
-  return request.get<ApiResponse<AdminAgentLog[]>>('/api/v1/admin/agent-logs');
+export function getAdminAgentLogs(params?: AdminQueryParams) {
+  return request.get<ApiResponse<PaginatedResponse<AdminAgentLog>>>('/api/v1/admin/agent-logs', { params });
 }
 
 export function getAdminAgentLogDetail(logId: number) {

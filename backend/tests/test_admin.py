@@ -79,8 +79,10 @@ class TestAdminAuth:
         res = client.get("/api/v1/admin/users", headers={"Authorization": f"Bearer {token}"})
         assert res.status_code == 200
         data = res.json()["data"]
-        assert isinstance(data, list)
-        assert len(data) >= 1
+        assert "items" in data
+        assert "total" in data
+        assert isinstance(data["items"], list)
+        assert len(data["items"]) >= 1
 
 
 class TestAdminEndpoints:
@@ -91,7 +93,7 @@ class TestAdminEndpoints:
 
         res = client.get("/api/v1/admin/users", headers={"Authorization": f"Bearer {token}"})
         assert res.status_code == 200
-        users = res.json()["data"]
+        users = res.json()["data"]["items"]
         assert len(users) >= 3
         usernames = {u["username"] for u in users}
         assert "admin_a" in usernames
@@ -99,7 +101,6 @@ class TestAdminEndpoints:
 
     def test_contracts_list(self, client):
         token, _ = _make_admin(client, "admin_b")
-        # Upload a contract
         client.post(
             "/api/v1/contracts/upload",
             files={"file": ("test.pdf", io.BytesIO(b"%PDF-1.4"), "application/octet-stream")},
@@ -109,7 +110,7 @@ class TestAdminEndpoints:
 
         res = client.get("/api/v1/admin/contracts", headers={"Authorization": f"Bearer {token}"})
         assert res.status_code == 200
-        contracts = res.json()["data"]
+        contracts = res.json()["data"]["items"]
         assert len(contracts) >= 1
         assert "file_name" in contracts[0]
 
@@ -129,7 +130,7 @@ class TestAdminEndpoints:
 
         res = client.get("/api/v1/admin/agent-logs", headers={"Authorization": f"Bearer {token}"})
         assert res.status_code == 200
-        logs = res.json()["data"]
+        logs = res.json()["data"]["items"]
         if logs:
             assert "input_json" not in logs[0]
             assert "output_json" not in logs[0]
@@ -187,7 +188,7 @@ class TestAdminEndpoints:
 
         # Get agent logs list
         list_res = client.get("/api/v1/admin/agent-logs", headers={"Authorization": f"Bearer {token}"})
-        logs = list_res.json()["data"]
+        logs = list_res.json()["data"]["items"]
         if logs:
             log_id = logs[0]["id"]
             detail_res = client.get(

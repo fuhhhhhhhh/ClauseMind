@@ -1,6 +1,6 @@
 """Admin APIs — require get_current_admin_user."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_admin_user, get_db
@@ -13,6 +13,15 @@ from app.models.user import User
 router = APIRouter()
 
 
+# ── Helpers ──────────────────────────────────────────────────────────────────
+
+
+def _paginate(query, page: int, page_size: int):
+    total = query.count()
+    items = query.offset((page - 1) * page_size).limit(page_size).all()
+    return {"items": items, "total": total, "page": page, "page_size": page_size}
+
+
 # ── GET /api/v1/admin/users ──────────────────────────────────────────────────
 
 
@@ -20,22 +29,28 @@ router = APIRouter()
 def admin_users(
     current_admin: User = Depends(get_current_admin_user),
     db: Session = Depends(get_db),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    keyword: str | None = Query(None),
+    role: str | None = Query(None),
 ):
-    users = db.query(User).order_by(User.created_at.desc()).all()
-    return success(
-        [
-            {
-                "id": u.id,
-                "username": u.username,
-                "email": u.email,
-                "role": u.role,
-                "status": u.status,
-                "created_at": u.created_at.isoformat() if u.created_at else None,
-            }
-            for u in users
-        ],
-        "获取用户列表成功",
-    )
+    q = db.query(User)
+    if keyword:
+        q = q.filter(User.username.contains(keyword) | (User.email.contains(keyword) if hasattr(User.email, 'contains') else False))
+    if role:
+        q = q.filter(User.role == role)
+    q = q.order_by(User.created_at.desc(), User.id.desc())
+
+    result = _paginate(q, page, page_size)
+    result["items"] = [
+        {
+            "id": u.id, "username": u.username, "email": u.email,
+            "role": u.role, "status": u.status,
+            "created_at": u.created_at.isoformat() if u.created_at else None,
+        }
+        for u in result["items"]
+    ]
+    return success(result, "获取用户列表成功")
 
 
 # ── GET /api/v1/admin/contracts ──────────────────────────────────────────────
@@ -45,23 +60,29 @@ def admin_users(
 def admin_contracts(
     current_admin: User = Depends(get_current_admin_user),
     db: Session = Depends(get_db),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    keyword: str | None = Query(None),
+    status: str | None = Query(None),
 ):
-    contracts = db.query(Contract).order_by(Contract.created_at.desc()).all()
-    return success(
-        [
-            {
-                "id": c.id,
-                "user_id": c.user_id,
-                "file_name": c.file_name,
-                "contract_type": c.contract_type,
-                "status": c.status,
-                "created_at": c.created_at.isoformat() if c.created_at else None,
-                "updated_at": c.updated_at.isoformat() if c.updated_at else None,
-            }
-            for c in contracts
-        ],
-        "获取合同列表成功",
-    )
+    q = db.query(Contract)
+    if keyword:
+        q = q.filter(Contract.file_name.contains(keyword) | Contract.contract_type.contains(keyword))
+    if status:
+        q = q.filter(Contract.status == status)
+    q = q.order_by(Contract.created_at.desc(), Contract.id.desc())
+
+    result = _paginate(q, page, page_size)
+    result["items"] = [
+        {
+            "id": c.id, "user_id": c.user_id, "file_name": c.file_name,
+            "contract_type": c.contract_type, "status": c.status,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
+            "updated_at": c.updated_at.isoformat() if c.updated_at else None,
+        }
+        for c in result["items"]
+    ]
+    return success(result, "获取合同列表成功")
 
 
 # ── GET /api/v1/admin/review-tasks ───────────────────────────────────────────
@@ -71,25 +92,31 @@ def admin_contracts(
 def admin_review_tasks(
     current_admin: User = Depends(get_current_admin_user),
     db: Session = Depends(get_db),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    keyword: str | None = Query(None),
+    status: str | None = Query(None),
 ):
-    tasks = db.query(ReviewTask).order_by(ReviewTask.created_at.desc()).all()
-    return success(
-        [
-            {
-                "id": t.id,
-                "contract_id": t.contract_id,
-                "user_id": t.user_id,
-                "status": t.status,
-                "current_step": t.current_step,
-                "error_message": t.error_message,
-                "started_at": t.started_at.isoformat() if t.started_at else None,
-                "finished_at": t.finished_at.isoformat() if t.finished_at else None,
-                "created_at": t.created_at.isoformat() if t.created_at else None,
-            }
-            for t in tasks
-        ],
-        "获取审查任务列表成功",
-    )
+    q = db.query(ReviewTask)
+    if keyword:
+        q = q.filter(ReviewTask.current_step.contains(keyword))
+    if status:
+        q = q.filter(ReviewTask.status == status)
+    q = q.order_by(ReviewTask.created_at.desc(), ReviewTask.id.desc())
+
+    result = _paginate(q, page, page_size)
+    result["items"] = [
+        {
+            "id": t.id, "contract_id": t.contract_id, "user_id": t.user_id,
+            "status": t.status, "current_step": t.current_step,
+            "error_message": t.error_message,
+            "started_at": t.started_at.isoformat() if t.started_at else None,
+            "finished_at": t.finished_at.isoformat() if t.finished_at else None,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+        }
+        for t in result["items"]
+    ]
+    return success(result, "获取审查任务列表成功")
 
 
 # ── GET /api/v1/admin/agent-logs ─────────────────────────────────────────────
@@ -99,25 +126,33 @@ def admin_review_tasks(
 def admin_agent_logs(
     current_admin: User = Depends(get_current_admin_user),
     db: Session = Depends(get_db),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    keyword: str | None = Query(None),
+    status: str | None = Query(None),
+    agent_name: str | None = Query(None),
 ):
-    logs = db.query(AgentExecutionLog).order_by(AgentExecutionLog.id.desc()).all()
-    return success(
-        [
-            {
-                "id": log.id,
-                "task_id": log.task_id,
-                "contract_id": log.contract_id,
-                "agent_name": log.agent_name,
-                "status": log.status,
-                "error_message": log.error_message,
-                "duration_ms": log.duration_ms,
-                "started_at": log.started_at.isoformat() if log.started_at else None,
-                "finished_at": log.finished_at.isoformat() if log.finished_at else None,
-            }
-            for log in logs
-        ],
-        "获取 Agent 日志列表成功",
-    )
+    q = db.query(AgentExecutionLog)
+    if keyword:
+        q = q.filter(AgentExecutionLog.error_message.contains(keyword))
+    if status:
+        q = q.filter(AgentExecutionLog.status == status)
+    if agent_name:
+        q = q.filter(AgentExecutionLog.agent_name == agent_name)
+    q = q.order_by(AgentExecutionLog.id.desc())
+
+    result = _paginate(q, page, page_size)
+    result["items"] = [
+        {
+            "id": log.id, "task_id": log.task_id, "contract_id": log.contract_id,
+            "agent_name": log.agent_name, "status": log.status,
+            "error_message": log.error_message, "duration_ms": log.duration_ms,
+            "started_at": log.started_at.isoformat() if log.started_at else None,
+            "finished_at": log.finished_at.isoformat() if log.finished_at else None,
+        }
+        for log in result["items"]
+    ]
+    return success(result, "获取 Agent 日志列表成功")
 
 
 @router.get("/agent-logs/{log_id}")
@@ -131,14 +166,10 @@ def admin_agent_log_detail(
         return success(None, "日志不存在")
     return success(
         {
-            "id": log.id,
-            "task_id": log.task_id,
-            "contract_id": log.contract_id,
+            "id": log.id, "task_id": log.task_id, "contract_id": log.contract_id,
             "agent_name": log.agent_name,
-            "input_json": log.input_json,
-            "output_json": log.output_json,
-            "status": log.status,
-            "error_message": log.error_message,
+            "input_json": log.input_json, "output_json": log.output_json,
+            "status": log.status, "error_message": log.error_message,
             "duration_ms": log.duration_ms,
             "started_at": log.started_at.isoformat() if log.started_at else None,
             "finished_at": log.finished_at.isoformat() if log.finished_at else None,
@@ -186,9 +217,7 @@ def admin_statistics(
             },
             "recent_review_tasks": [
                 {
-                    "id": t.id,
-                    "contract_id": t.contract_id,
-                    "status": t.status,
+                    "id": t.id, "contract_id": t.contract_id, "status": t.status,
                     "created_at": t.created_at.isoformat() if t.created_at else None,
                 }
                 for t in recent_tasks

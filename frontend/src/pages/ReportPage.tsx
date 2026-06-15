@@ -52,6 +52,14 @@ export default function ReportPage() {
         >
           导出 Markdown
         </Button>
+        <Button
+          size="small"
+          onClick={() => {
+            window.open(`/api/v1/reports/${taskId}/export/html`, '_blank');
+          }}
+        >
+          导出 HTML
+        </Button>
       </Space>
       {markdown ? (
         <MarkdownViewer markdown={markdown} />
