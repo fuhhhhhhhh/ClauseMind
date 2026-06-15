@@ -3,3 +3,22 @@
 
 输入：
 {{input_json}}
+
+输出格式：
+{
+  "risks": [
+    {
+      "risk_id": "R1",
+      "risk_level": "中风险",
+      "risk_type": "违约责任不明确",
+      "related_clause_id": "C5",
+      "source_text": "原文引用",
+      "reason": "风险原因",
+      "impact": "可能的影响",
+      "need_human_review": true
+    }
+  ],
+  "overall_risk": "中风险"
+}
+
+风险等级必须是：高风险、中风险、低风险。对每个风险建议人工复核。

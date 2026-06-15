@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getContract } from '../api/contracts';
 import { startParse } from '../api/parse';
-import { startProfileReview } from '../api/reviews';
+import { startFullReview } from '../api/reviews';
 import ContractStatusTag from '../components/ContractStatusTag';
 import PageHeader from '../components/PageHeader';
 import type { ContractDetail } from '../types';
@@ -52,11 +52,11 @@ export default function ContractDetailPage() {
     if (!contract) return;
     setReviewing(true);
     try {
-      const res = await startProfileReview(contract.id);
-      message.success('画像审查完成');
+      const res = await startFullReview(contract.id);
+      message.success('审查完成');
       navigate(`/review-tasks/${res.data.data.task.id}/progress`);
     } catch (err: any) {
-      const detail = err?.response?.data?.detail || '启动审查失败（请确保合同已解析并标准化）';
+      const detail = err?.response?.data?.detail || err?.response?.data?.message || '启动审查失败（请确保合同已解析并标准化）';
       message.error(detail);
     } finally {
       setReviewing(false);

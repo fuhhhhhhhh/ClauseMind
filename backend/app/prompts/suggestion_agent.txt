@@ -3,3 +3,17 @@
 
 输入：
 {{input_json}}
+
+输出格式：
+{
+  "suggestions": [
+    {
+      "suggestion_id": "SUG1",
+      "risk_id": "R1",
+      "original_text": "原条款文本",
+      "suggested_text": "建议修改后的文本",
+      "reason": "建议理由",
+      "rewrite_type": "明确化 / 补充 / 修正"
+    }
+  ]
+}

@@ -3,3 +3,18 @@
 
 输入：
 {{input_json}}
+
+输出格式：
+{
+  "passed": true,
+  "issues": [
+    {
+      "issue_id": "I1",
+      "issue_type": "风险依据不足 / 条款引用错误 / 信息矛盾",
+      "description": "问题描述",
+      "target_agent": "RiskDetectionAgent",
+      "target_id": "R2",
+      "suggested_action": "建议操作"
+    }
+  ]
+}
