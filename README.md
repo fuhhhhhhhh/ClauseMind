@@ -26,6 +26,15 @@ Useful endpoints:
 
 The real LLM settings live in `backend/.env`. Keep that file local. Use `backend/.env.example` as the template for other machines.
 
+MinerU is expected to be configured through environment variables. The local recommended setup is:
+
+```env
+MINERU_COMMAND=/home/fuxiangyu/miniconda3/envs/wepipeline/bin/mineru
+MINERU_BACKEND=hybrid-auto-engine
+```
+
+Do not install or upgrade packages inside the existing `wepipeline` conda environment from this project. A vendored MinerU source copy is available at `third_party/MinerU` for inspection/integration work.
+
 ## Frontend
 
 ```bash

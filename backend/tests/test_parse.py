@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
+from app.core.config import settings
 from app.core.database import Base, SessionLocal, engine
 from app.models.contract import Contract
 from app.models.parse_job import DocumentParseResult, ParseJob
@@ -110,7 +111,7 @@ class TestParseFlow:
         assert res.status_code == 200
         data = res.json()["data"]
         assert data["status"] == "SUCCESS"
-        assert data["backend"] == "pipeline"
+        assert data["backend"] == settings.mineru_backend
 
         # Verify contract status via detail
         detail = client.get(

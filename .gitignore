@@ -6,6 +6,10 @@ __pycache__/
 .mypy_cache/
 .venv/
 *.egg-info/
+third_party/**/__pycache__/
+third_party/**/*.py[cod]
+third_party/**/.pytest_cache/
+third_party/**/*.egg-info/
 
 # Backend runtime
 backend/.env
