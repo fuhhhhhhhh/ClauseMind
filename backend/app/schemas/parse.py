@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class ParseJobResponse(BaseModel):
@@ -27,11 +27,13 @@ class ParseStatusResponse(BaseModel):
 class DocumentParseResultResponse(BaseModel):
     parse_job: ParseJobResponse
     raw_markdown: str | None = None
-    markdown_path: str | None = None
-    content_json_path: str | None = None
-    middle_json_path: str | None = None
-    layout_pdf_path: str | None = None
-    image_dir: str | None = None
     normalized_json: str | None = None
+    # Safety: never expose server internal paths to frontend.
+    # Use boolean flags to indicate output file presence instead.
+    has_markdown: bool = False
+    has_content_json: bool = False
+    has_middle_json: bool = False
+    has_layout_pdf: bool = False
+    has_images: bool = False
 
     model_config = {"from_attributes": True}

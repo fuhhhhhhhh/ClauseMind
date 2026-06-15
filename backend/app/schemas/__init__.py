@@ -12,6 +12,13 @@ from app.schemas.contract import (
     ContractListResponse,
     ContractResponse,
 )
+from app.schemas.normalization import (
+    NormalizationResult,
+    NormalizedClause,
+    NormalizedParty,
+    NormalizedSection,
+    NormalizedTable,
+)
 from app.schemas.parse import (
     DocumentParseResultResponse,
     ParseJobResponse,
@@ -28,6 +35,11 @@ __all__ = [
     "ContractListResponse",
     "ContractResponse",
     "DocumentParseResultResponse",
+    "NormalizationResult",
+    "NormalizedClause",
+    "NormalizedParty",
+    "NormalizedSection",
+    "NormalizedTable",
     "ParseJobResponse",
     "ParseStatusResponse",
 ]

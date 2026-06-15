@@ -1,5 +1,6 @@
-"""MinerU parse APIs: start parse, check status, get result."""
+"""MinerU parse APIs: start parse, check status, get result, normalize."""
 
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
@@ -19,10 +20,12 @@ from app.schemas.parse import (
     ParseJobResponse,
     ParseStatusResponse,
 )
+from app.services.document_normalizer import DocumentNormalizer
 from app.services.mineru_service import MinerUService
 
 router = APIRouter()
 mineru = MinerUService()
+normalizer = DocumentNormalizer()
 
 
 def _get_own_contract(contract_id: int, user: User, db: Session) -> Contract:
@@ -33,6 +36,21 @@ def _get_own_contract(contract_id: int, user: User, db: Session) -> Contract:
     if contract.user_id != user.id:
         raise AppError("无权访问该合同", code=403, status_code=403)
     return contract
+
+
+def _get_latest_result(contract_id: int, db: Session) -> DocumentParseResult | None:
+    """Get the most recent DocumentParseResult for a contract."""
+    job = (
+        db.query(ParseJob)
+        .filter(ParseJob.contract_id == contract_id)
+        .order_by(ParseJob.created_at.desc())
+        .first()
+    )
+    if not job:
+        return None
+    return db.query(DocumentParseResult).filter(
+        DocumentParseResult.parse_job_id == job.id
+    ).first()
 
 
 @router.post("/{contract_id}/parse")
@@ -149,12 +167,40 @@ def parse_result(
         DocumentParseResultResponse(
             parse_job=ParseJobResponse.model_validate(job),
             raw_markdown=result.raw_markdown if result else None,
-            markdown_path=result.markdown_path if result else None,
-            content_json_path=result.content_json_path if result else None,
-            middle_json_path=result.middle_json_path if result else None,
-            layout_pdf_path=result.layout_pdf_path if result else None,
-            image_dir=result.image_dir if result else None,
             normalized_json=result.normalized_json if result else None,
+            has_markdown=bool(result and result.markdown_path),
+            has_content_json=bool(result and result.content_json_path),
+            has_middle_json=bool(result and result.middle_json_path),
+            has_layout_pdf=bool(result and result.layout_pdf_path),
+            has_images=bool(result and result.image_dir),
         ).model_dump(),
         "获取解析结果成功",
     )
+
+
+@router.post("/{contract_id}/normalize")
+def normalize_document(
+    contract_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """Run document normalization and save normalized_json to the latest parse result."""
+    contract = _get_own_contract(contract_id, current_user, db)
+
+    result = _get_latest_result(contract_id, db)
+    if not result:
+        raise AppError("该合同尚未解析，无法执行标准化", code=400, status_code=400)
+    if not result.raw_markdown:
+        raise AppError("解析结果中无Markdown内容，无法执行标准化", code=400, status_code=400)
+
+    # Run normalizer
+    normalized = normalizer.normalize(
+        markdown_text=result.raw_markdown,
+        content_json_path=result.content_json_path,
+    )
+
+    # Save to DB
+    result.normalized_json = json.dumps(normalized, ensure_ascii=False)
+    db.commit()
+
+    return success(normalized, "标准化完成")

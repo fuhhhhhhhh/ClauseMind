@@ -175,10 +175,24 @@ class TestParseFlow:
             headers={"Authorization": f"Bearer {token}"},
         )
         data = result.json()["data"]
-        # Paths are stored but should NOT expose sensitive system paths in response
-        # (We still store them for internal use; the FE just displays them)
+
+        # Business fields should exist
         assert "raw_markdown" in data
         assert data["raw_markdown"] == "content"
+
+        # Internal server paths MUST NOT be exposed
+        assert "markdown_path" not in data
+        assert "content_json_path" not in data
+        assert "middle_json_path" not in data
+        assert "layout_pdf_path" not in data
+        assert "image_dir" not in data
+
+        # Boolean flags should indicate file presence
+        assert data["has_markdown"] is True
+        assert data["has_content_json"] is True
+        assert data["has_middle_json"] is False
+        assert data["has_layout_pdf"] is False
+        assert data["has_images"] is True
 
     @patch("app.services.mineru_service.MinerUService.parse")
     def test_parse_status_without_job(self, mock_parse: MagicMock, client):
