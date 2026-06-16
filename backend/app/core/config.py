@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     mineru_command: str = "mineru"
     mineru_backend: str = "hybrid-auto-engine"
     mineru_timeout: int = 600
+    mineru_cuda_visible_devices: str | None = None
 
     cors_origins: str = Field(default="http://localhost:5173")
 
@@ -58,6 +59,7 @@ class Settings(BaseSettings):
             "llm_model": self.llm_model,
             "llm_api_base_configured": bool(self.llm_api_base),
             "mineru_backend": self.mineru_backend,
+            "mineru_cuda_visible_devices_configured": bool(self.mineru_cuda_visible_devices),
             "cors_origins": self.cors_origins_list,
         }
 

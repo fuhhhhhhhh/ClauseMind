@@ -4,6 +4,7 @@ Invokes the MinerU CLI to parse uploaded contract files (PDF/DOCX/images) and
 collects the resulting Markdown, JSON, and layout outputs.
 """
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -20,10 +21,16 @@ class MinerUService:
         command: str | None = None,
         backend: str | None = None,
         timeout: int | None = None,
+        cuda_visible_devices: str | None = None,
     ) -> None:
         self.command = command or settings.mineru_command
         self.backend = backend or settings.mineru_backend
         self.timeout = timeout or settings.mineru_timeout
+        self.cuda_visible_devices = (
+            cuda_visible_devices
+            if cuda_visible_devices is not None
+            else settings.mineru_cuda_visible_devices
+        )
 
     def _check_command(self) -> None:
         """Raise if the MinerU command is not found on PATH."""
@@ -48,6 +55,9 @@ class MinerUService:
             "-o", str(output_dir),
             "-b", self.backend,
         ]
+        env = os.environ.copy()
+        if self.cuda_visible_devices:
+            env["CUDA_VISIBLE_DEVICES"] = self.cuda_visible_devices
 
         try:
             result = subprocess.run(
@@ -55,6 +65,7 @@ class MinerUService:
                 capture_output=True,
                 text=True,
                 timeout=self.timeout,
+                env=env,
             )
         except subprocess.TimeoutExpired:
             raise AppError(
