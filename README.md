@@ -60,23 +60,17 @@ ClauseMind/
 
 ## 环境约束
 
-MinerU 的原始环境位于：
+MinerU 可以来自系统 PATH、独立 conda/uv 环境，或外部已有环境中的 CLI。请遵守：
 
-```text
-/home/fuxiangyu/miniconda3/envs/wepipeline
-```
-
-请遵守：
-
-- 不要修改 `/home/fuxiangyu/project/wepipeline` 下任何内容。
-- 不要往 `wepipeline` conda 环境里安装或升级包。
-- ClauseMind 代码中如需查看 MinerU 源码，使用本仓库的 `third_party/MinerU`。
-- 本地真实密钥只放在 `backend/.env`，不要提交。
+- 不要在 ClauseMind 启动过程中修改外部 MinerU 源码目录或 conda 环境。
+- 不要为了本项目往已有 MinerU 环境里安装或升级包；需要改依赖时新建独立环境。
+- ClauseMind 代码中如需查看 MinerU 源码，优先使用本仓库的 `third_party/MinerU`。
+- 本地真实密钥和机器相关路径只放在 `backend/.env`，不要提交。
 
 ## 后端启动
 
 ```bash
-cd /home/fuxiangyu/project/ClauseMind/backend
+cd backend
 uv sync
 cp .env.example .env
 uv run alembic upgrade head
@@ -108,19 +102,55 @@ LLM_API_KEY=replace-with-your-api-key
 LLM_MODEL=gemini-3-flash-preview
 LLM_TIMEOUT=120
 
-MINERU_COMMAND=/home/fuxiangyu/miniconda3/envs/wepipeline/bin/mineru
+MINERU_COMMAND=mineru
 MINERU_BACKEND=hybrid-auto-engine
 MINERU_TIMEOUT=600
+# MINERU_CUDA_VISIBLE_DEVICES=2
 
 CORS_ORIGINS=http://localhost:5173
 ```
 
 生产或演示环境请替换 `JWT_SECRET_KEY` 和 LLM 配置。不要把真实 `LLM_API_KEY` 写入 README、docs 或 git。
 
+### MinerU 配置方式
+
+如果 `mineru` 已在当前 shell 的 PATH 中，保持默认即可：
+
+```env
+MINERU_COMMAND=mineru
+```
+
+如果 MinerU 在外部环境里，请在本机 `backend/.env` 写你的实际 CLI 路径，例如：
+
+```env
+MINERU_COMMAND=<path-to-mineru-env>/bin/mineru
+```
+
+多 GPU 机器上，如果 `hybrid-auto-engine` 默认占用的 GPU 显存不足，可以只给 MinerU 子进程指定 GPU：
+
+```env
+MINERU_CUDA_VISIBLE_DEVICES=2
+```
+
+这个变量只影响 ClauseMind 调起 MinerU 的子进程，不会修改外部环境。
+
+### LLM 配置方式
+
+后端通过 OpenAI-compatible Chat Completions 接口调用模型：
+
+```env
+LLM_API_BASE=https://your-openai-compatible-api.example.com/
+LLM_API_KEY=replace-with-your-api-key
+LLM_MODEL=gemini-3-flash-preview
+LLM_TIMEOUT=120
+```
+
+`LLM_API_BASE` 可以填服务根地址，也可以填已经包含 `/v1` 的地址；后端会在客户端里统一处理 Chat Completions endpoint。`GET /api/v1/system/config` 只暴露是否已配置，不会返回 API key。
+
 ## 前端启动
 
 ```bash
-cd /home/fuxiangyu/project/ClauseMind/frontend
+cd frontend
 npm install
 npm run dev
 ```
@@ -138,7 +168,7 @@ Vite 会将 `/api` 和 `/health` 请求代理到后端。
 可以用 seed 脚本快速生成管理员、普通用户、合同、解析结果、标准化结果、审查任务、Agent 日志、风险、建议和报告。
 
 ```bash
-cd /home/fuxiangyu/project/ClauseMind/backend
+cd backend
 uv run python scripts/seed_demo.py
 ```
 
@@ -210,9 +240,9 @@ Fresh Alembic：
 
 ```bash
 cd backend
-rm -f /tmp/clausemind-check.db
-DATABASE_URL=sqlite:////tmp/clausemind-check.db uv run alembic upgrade head
-DATABASE_URL=sqlite:////tmp/clausemind-check.db uv run alembic current --verbose
+rm -f clausemind-check.db
+DATABASE_URL=sqlite:///./clausemind-check.db uv run alembic upgrade head
+DATABASE_URL=sqlite:///./clausemind-check.db uv run alembic current --verbose
 ```
 
 前端：
@@ -225,12 +255,12 @@ npm run build
 Secret 检查示例：
 
 ```bash
-grep -R "sk-" -n . \
-  --exclude-dir=.git \
-  --exclude=.env \
-  --exclude-dir=node_modules \
-  --exclude-dir=.venv \
-  --exclude-dir=dist || true
+git grep -n "LLM_API_KEY=" -- \
+  ':!backend/.env' \
+  ':!backend/.env.example' \
+  ':!frontend/node_modules' \
+  ':!backend/.venv' \
+  ':!frontend/dist' || true
 ```
 
 代码行数统计（排除 MinerU 和依赖/产物）：

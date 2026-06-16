@@ -4,16 +4,13 @@ This directory stores third-party source code vendored for local inspection and 
 
 ## MinerU
 
-`third_party/MinerU` was copied from the local editable MinerU checkout at:
+`third_party/MinerU` was copied from a local editable MinerU checkout for
+inspection and integration inside ClauseMind. Keep machine-specific source paths
+out of committed docs; use the relative vendored path in this repository.
+
+Source metadata at copy time:
 
 ```text
-/home/fuxiangyu/project/wepipeline/MinerU
-```
-
-The outer source repository at copy time was:
-
-```text
-/home/fuxiangyu/project/wepipeline
 branch: test
 commit: 257f7b580053a2e9a4ccac64db9128e49446c195
 ```
@@ -23,7 +20,8 @@ Installed package metadata reported:
 ```text
 name: mineru
 version: 3.1.9
-editable project location: /home/fuxiangyu/project/wepipeline/MinerU
 ```
 
-Do not modify `/home/fuxiangyu/project/wepipeline` or the `wepipeline` conda environment when working on ClauseMind. If ClauseMind needs local source changes, edit the vendored copy here or create a separate environment.
+Do not modify external MinerU checkouts or existing conda environments when
+working on ClauseMind. If ClauseMind needs local source changes, edit the
+vendored copy here or create a separate environment.

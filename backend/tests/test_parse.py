@@ -156,12 +156,12 @@ class TestParseFlow:
     @patch("app.services.mineru_service.MinerUService.parse")
     def test_parse_result_does_not_expose_server_paths(self, mock_parse: MagicMock, client):
         mock_parse.return_value = {
-            "markdown_path": "/home/user/storage/mineru_output/1/abc/test.md",
+            "markdown_path": "storage/mineru_output/1/abc/test.md",
             "raw_markdown": "content",
-            "content_json_path": "/home/user/storage/mineru_output/1/abc/content_list.json",
+            "content_json_path": "storage/mineru_output/1/abc/content_list.json",
             "middle_json_path": None,
             "layout_pdf_path": None,
-            "image_dir": "/home/user/storage/mineru_output/1/abc",
+            "image_dir": "storage/mineru_output/1/abc",
         }
 
         token, cid = _register_and_upload(client, "safe_paths")
