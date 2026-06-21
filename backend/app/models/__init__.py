@@ -1,15 +1,12 @@
-"""SQLAlchemy models."""
+"""SQLAlchemy models — import all submodules so Base.metadata is populated."""
 
-from app.models.contract import Contract
-from app.models.parse_job import DocumentParseResult, ParseJob
-from app.models.review_results import (
-    ContractClause,
-    ModifySuggestion,
-    ReviewReport,
-    RiskItem,
-)
-from app.models.review_task import AgentExecutionLog, ReviewTask
-from app.models.user import User
+# Import each model module so SQLAlchemy registers tables on Base.metadata
+# for Alembic autogenerate and create_all().
+import app.models.contract  # noqa: F401
+import app.models.parse_job  # noqa: F401
+import app.models.review_results  # noqa: F401
+import app.models.review_task  # noqa: F401
+import app.models.user  # noqa: F401
 
 __all__ = [
     "AgentExecutionLog",

@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     mineru_cuda_visible_devices: str | None = None
 
     cors_origins: str = Field(default="http://localhost:5173")
+    max_file_size: int = 50 * 1024 * 1024  # 50 MB
 
     @cached_property
     def cors_origins_list(self) -> list[str]:
